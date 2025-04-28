@@ -30,6 +30,24 @@
             </ul>
         </div>
      </section>
+
+    <section class="bg-secondary p-2">
+        <div v-if="posts.links" class="d-flex justify-content-center align-items-center gap-2">
+        <button
+            v-for="(link, index) in posts.links"
+            :key="index"
+            @click="fetchPost(link.url)"
+            :disabled="!link.url"
+            class="btn"
+            :class="[
+            link.active ? 'btn-primary' : (!link.url ? 'btn-secondary disabled' : 'btn-light')
+            ]"
+            v-html="link.label"
+        >
+        </button>
+    </div>
+    </section>
+
 </template>
 
 <script>
