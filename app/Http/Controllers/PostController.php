@@ -13,7 +13,7 @@ class PostController extends Controller
     public function index()
     {
         //
-        return Post::paginate(10);
+        return Post::latest()->paginate(10);
     }
 
     /**
