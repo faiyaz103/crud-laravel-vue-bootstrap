@@ -1,11 +1,12 @@
 <script>
-import Posts from './components/Posts.vue';
+import Navbar from './components/Navbar.vue'
 
 export default{
-    components: {Posts}
+    components: {Navbar}
 }
 </script>
 
 <template>
-        <Posts/>
+        <Navbar/>
+        <router-view></router-view>
 </template>
