@@ -34,12 +34,17 @@ class PostController extends Controller
         $validated = $request->validate([
             'title'=>'required|string|max:255',
             'content'=>'required|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:2048',
+            'pdf' => 'nullable|mimes:pdf|max:2048',
         ]);
 
         if($request->hasFile('image')){
             $validated['image']=$request->file('image')->store('images','public');
         }
+        if ($request->hasFile('pdf')) {
+            $validated['pdf'] = $request->file('pdf')->store('pdfs', 'public');
+        }
+        
 
         $post = Post::create($validated);
 
@@ -72,7 +77,8 @@ class PostController extends Controller
         $validated = $request->validate([
             'title'=>'required|string|max:255',
             'content'=>'required|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:2048',
+            'pdf' => 'nullable|mimes:pdf|max:2048',
         ]);
 
         if($request->hasFile('image')){
@@ -81,6 +87,13 @@ class PostController extends Controller
             }
             $validated['image']=$request->file('image')->store('images','public');
         }
+        if ($request->hasFile('pdf')) {
+            if ($post->pdf) {
+                Storage::disk('public')->delete($post->pdf);
+            }
+            $validated['pdf'] = $request->file('pdf')->store('pdfs', 'public');
+        }
+        
 
         $post->update($validated);
 
@@ -97,6 +110,9 @@ class PostController extends Controller
         if($post->image){
             Storage::disk('public')->delete($post->image);
         }
+        if ($post->pdf) {
+            Storage::disk('public')->delete($post->pdf);
+        }        
         return response()->noContent();
     }
 }

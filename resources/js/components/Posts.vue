@@ -10,7 +10,12 @@
                 <div class="mb-3">
                     <textarea v-model="form.content" name="content" id="content" class="form-control" placeholder="Content"></textarea>
                 </div>
+                <label for="image" class="form-label">Image</label>
                 <input @change="handleFileUpload" ref="imagefile" class="form-control" type="file" id="formFile">
+
+                <label for="pdf" class="form-label">PDF</label>
+                <input @change="handlePdfUpload" ref="pdffile" class="form-control" type="file" id="formPdf">
+
                 <button type="submit" class="btn btn-primary mt-3">{{ editMode ? 'Update' : 'Create' }}</button>
             </form>
         </div>
@@ -22,11 +27,20 @@
             <h1 class="text-center">All Posts</h1>
             <ul class="list-group">
                 <li v-for="post in posts.data" :key="post.id" class="list-group-item mb-3">
-                    <img v-if="post.image" :src="'/storage/' + post.image" class="img-fluid rounded float-start me-3" :style="{ width: '100px', height: 'auto' }" alt="img">
-                    <h3>{{ post.title }}</h3>
-                    <p>{{ post.content }}</p>
-                    <button @click="editPost(post)" type="button" class="btn btn-warning mx-2">Edit</button>
-                    <button @click="deletePost(post.id)" type="button" class="btn btn-danger mx-2">Delete</button>
+                    <div class="row">
+                        <div class="col-2">
+                            <img v-if="post.image" :src="'/storage/' + post.image" class="img-fluid rounded float-start me-3" :style="{ width: '100px', height: 'auto' }" alt="img">
+                        </div>
+                        <div class="col-10">
+                            <h3>{{ post.title }}</h3>
+                            <p>{{ post.content }}</p>
+                            <a v-if="post.pdf" :href="'/storage/' + post.pdf" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">View PDF</a>
+
+                            <button @click="editPost(post)" type="button" class="btn btn-warning mx-2">Edit</button>
+                            <button @click="deletePost(post.id)" type="button" class="btn btn-danger mx-2">Delete</button>
+                        </div>
+                    </div>
+                    
                 </li>
             </ul>
         </div>
@@ -62,7 +76,8 @@ export default{
             form: {
                 title: '',
                 content: '',
-                image: null
+                image: null,
+                pdf: null
             },
             editMode: false,
             editId: null
@@ -71,6 +86,10 @@ export default{
     methods:{
         handleFileUpload(event){
             this.form.image = event.target.files[0];
+        },
+
+        handlePdfUpload(event) {
+            this.form.pdf = event.target.files[0];
         },
 
         async fetchPost(url="/api/posts"){
@@ -86,6 +105,10 @@ export default{
             if(this.form.image){
                 formData.append('image', this.form.image);
             }
+            if (this.form.pdf) {
+                formData.append('pdf', this.form.pdf);
+            }
+
 
             if(this.editMode){           
                 formData.append('_method', 'PUT');     
@@ -112,6 +135,9 @@ export default{
             this.form.content = '';
             this.form.image = null;
             this.$refs.imagefile.value=null;
+            this.form.pdf = null;
+            this.$refs.pdffile.value = null;
+
             this.fetchPost();
             
         },
