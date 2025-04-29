@@ -10,8 +10,8 @@
                 <div class="mb-3">
                     <textarea v-model="form.content" name="content" id="content" class="form-control" placeholder="Content"></textarea>
                 </div>
-                
-                <button type="submit" class="btn btn-primary">{{ editMode ? 'Update' : 'Create' }}</button>
+                <input @change="handleFileUpload" ref="imagefile" class="form-control" type="file" id="formFile">
+                <button type="submit" class="btn btn-primary mt-3">{{ editMode ? 'Update' : 'Create' }}</button>
             </form>
         </div>
     </section>
@@ -22,6 +22,7 @@
             <h1 class="text-center">All Posts</h1>
             <ul class="list-group">
                 <li v-for="post in posts.data" :key="post.id" class="list-group-item mb-3">
+                    <img v-if="post.image" :src="'/storage/' + post.image" class="img-fluid rounded float-start me-3" :style="{ width: '100px', height: 'auto' }" alt="img">
                     <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
                     <button @click="editPost(post)" type="button" class="btn btn-warning mx-2">Edit</button>
@@ -60,30 +61,61 @@ export default{
             posts: {},
             form: {
                 title: '',
-                content: ''
+                content: '',
+                image: null
             },
             editMode: false,
             editId: null
         }
     },
     methods:{
+        handleFileUpload(event){
+            this.form.image = event.target.files[0];
+        },
+
         async fetchPost(url="/api/posts"){
             const {data} = await axios.get(url);
             this.posts=data;
         },
+
         async savePost(){
-            if(this.editMode){
-                await axios.put(`/api/posts/${this.editId}`, this.form);
+
+            const formData = new FormData();
+            formData.append('title', this.form.title);
+            formData.append('content', this.form.content);
+            if(this.form.image){
+                formData.append('image', this.form.image);
+            }
+
+            if(this.editMode){           
+                formData.append('_method', 'PUT');     
+                await axios.post(`/api/posts/${this.editId}`, formData, 
+                    {
+                        headers:{
+                            "Content-Type": "multipart/form-data"
+                        }
+                    }
+                );
                 this.editMode=false;
             }
             else{
-                await axios.post('/api/posts', this.form);
+                await axios.post('/api/posts', formData, 
+                    {
+                        headers:{
+                            "Content-Type": "multipart/form-data"
+                        }
+                    }
+                );
             }
             
-            this.fetchPost();
             this.form.title = '';
             this.form.content = '';
+            this.form.image = null;
+            this.$refs.imagefile.value=null;
+            this.fetchPost();
+            
         },
+
         editPost(post){
             this.form.title=post.title;
             this.form.content=post.content;
@@ -91,6 +123,7 @@ export default{
 
             this.editMode=true;
         },
+
         async deletePost(id){
             await axios.delete(`/api/posts/${id}`);
             this.fetchPost();

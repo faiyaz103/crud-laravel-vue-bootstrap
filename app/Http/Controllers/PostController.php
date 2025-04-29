@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -32,8 +33,13 @@ class PostController extends Controller
         //
         $validated = $request->validate([
             'title'=>'required|string|max:255',
-            'content'=>'required|string'
+            'content'=>'required|string',
+            'image' => 'nullable|image|max:2048'
         ]);
+
+        if($request->hasFile('image')){
+            $validated['image']=$request->file('image')->store('images','public');
+        }
 
         $post = Post::create($validated);
 
@@ -65,8 +71,16 @@ class PostController extends Controller
         //
         $validated = $request->validate([
             'title'=>'required|string|max:255',
-            'content'=>'required|string'
+            'content'=>'required|string',
+            'image' => 'nullable|image|max:2048'
         ]);
+
+        if($request->hasFile('image')){
+            if($post->image){
+                Storage::disk('public')->delete($post->image);
+            }
+            $validated['image']=$request->file('image')->store('images','public');
+        }
 
         $post->update($validated);
 
@@ -80,7 +94,9 @@ class PostController extends Controller
     {
         //
         $post->delete();
-
+        if($post->image){
+            Storage::disk('public')->delete($post->image);
+        }
         return response()->noContent();
     }
 }
